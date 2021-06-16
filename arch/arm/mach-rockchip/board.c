@@ -4,6 +4,10 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
+#define DEBUG
+#undef CONFIG_LOGLEVEL
+#define CONFIG_LOGLEVEL 8
+
 #include <common.h>
 #include <amp.h>
 #include <android_ab.h>
@@ -75,6 +79,7 @@ __weak int set_armclk_rate(void)
 
 __weak int rk_board_init(void)
 {
+	printf("Here i am\n");
 	return 0;
 }
 

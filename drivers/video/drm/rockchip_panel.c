@@ -25,6 +25,8 @@
 #include "rockchip_connector.h"
 #include "rockchip_panel.h"
 
+#include "i2c.h"
+
 struct rockchip_cmd_header {
 	u8 data_type;
 	u8 delay_ms;
@@ -454,6 +456,8 @@ static int rockchip_panel_probe(struct udevice *dev)
 	int ret;
 	const char *cmd_type;
 
+
+	printf("ROCKCHIP PANEL PROBE\n");
 	ret = gpio_request_by_name(dev, "enable-gpios", 0,
 				   &priv->enable_gpio, GPIOD_IS_OUT);
 	if (ret && ret != -ENOENT) {

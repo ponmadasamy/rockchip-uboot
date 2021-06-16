@@ -5,7 +5,6 @@
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
-
 #include <common.h>
 #include <errno.h>
 #include <dm.h>
@@ -29,6 +28,7 @@ static int fixed_regulator_ofdata_to_platdata(struct udevice *dev)
 	int flags = GPIOD_IS_OUT;
 	int ret;
 
+	printf("fixed_regulator_ofdata_to_platdata\n");
 	dev_pdata = dev_get_platdata(dev);
 	uc_pdata = dev_get_uclass_platdata(dev);
 	if (!uc_pdata)
@@ -44,7 +44,7 @@ static int fixed_regulator_ofdata_to_platdata(struct udevice *dev)
 	gpio = &dev_pdata->gpio;
 	ret = gpio_request_by_name(dev, "gpio", 0, gpio, flags);
 	if (ret) {
-		debug("Fixed regulator optional enable GPIO - not found! Error: %d\n",
+		printf("Fixed regulator optional enable GPIO - not found! Error: %d\n",
 		      ret);
 		if (ret != -ENOENT)
 			return ret;
@@ -66,7 +66,7 @@ static int fixed_regulator_get_value(struct udevice *dev)
 		return -ENXIO;
 
 	if (uc_pdata->min_uV != uc_pdata->max_uV) {
-		debug("Invalid constraints for: %s\n", uc_pdata->name);
+		printf("Invalid constraints for: %s\n", uc_pdata->name);
 		return -EINVAL;
 	}
 
@@ -82,7 +82,7 @@ static int fixed_regulator_get_current(struct udevice *dev)
 		return -ENXIO;
 
 	if (uc_pdata->min_uA != uc_pdata->max_uA) {
-		debug("Invalid constraints for: %s\n", uc_pdata->name);
+		printf("Invalid constraints for: %s\n", uc_pdata->name);
 		return -EINVAL;
 	}
 
@@ -105,12 +105,13 @@ static int fixed_regulator_set_enable(struct udevice *dev, bool enable)
 	struct fixed_regulator_platdata *dev_pdata = dev_get_platdata(dev);
 	int ret;
 
-	debug("%s: dev='%s', enable=%d, delay=%d, has_gpio=%d\n", __func__,
+	printf("%s: dev='%s', enable=%d, delay=%d, has_gpio=%d\n", __func__,
 	      dev->name, enable, dev_pdata->startup_delay_us,
 	      dm_gpio_is_valid(&dev_pdata->gpio));
 	/* Enable GPIO is optional */
 	if (!dm_gpio_is_valid(&dev_pdata->gpio)) {
-		if (!enable)
+		printf("fixed_regulator_set_enable: invalid\n");
+		if (!enable) 
 			return -ENOSYS;
 		return 0;
 	}
@@ -124,7 +125,7 @@ static int fixed_regulator_set_enable(struct udevice *dev, bool enable)
 
 	if (enable && dev_pdata->startup_delay_us)
 		udelay(dev_pdata->startup_delay_us);
-	debug("%s: done\n", __func__);
+	printf("%s: done\n", __func__);
 
 	return 0;
 }

@@ -149,13 +149,15 @@ int android_image_get_kernel(const struct andr_img_hdr *hdr, int verify,
 
 	int len = 0;
 	if (cmdline) {
-		debug("Kernel command line: %s\n", cmdline);
+		printf("Kernel command line: %s\n", cmdline);
 		len += strlen(cmdline);
 	}
 
 	char *bootargs = env_get("bootargs");
-	if (bootargs)
+	if (bootargs) {
+		printf("Kernel bootargs: %s\n", bootargs);
 		len += strlen(bootargs);
+	}
 
 	char *newbootargs = malloc(len + 2);
 	if (!newbootargs) {
@@ -171,6 +173,7 @@ int android_image_get_kernel(const struct andr_img_hdr *hdr, int verify,
 	if (cmdline)
 		strcat(newbootargs, cmdline);
 
+	printf("Kernel new bootargs: %s\n", newbootargs);
 	env_set("bootargs", newbootargs);
 
 	if (os_data) {

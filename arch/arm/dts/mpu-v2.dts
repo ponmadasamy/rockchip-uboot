@@ -1,0 +1,156 @@
+/*
+ * (C) Copyright 2016 Rockchip Electronics Co., Ltd
+ *
+ * SPDX-License-Identifier:     GPL-2.0+
+ */
+
+/dts-v1/;
+
+#include "friendlyelec-som-rk3399.dtsi"
+/ {
+	model = "MPU V2.0";
+	compatible = "friendlyelec,som-rk3399", "rockchip,rk3399";
+
+	chosen {
+		duragon,i2c = &i2c3;
+	};
+
+	vcc12v0_ext: vcc12v0-ext {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc12v0_ext";
+		gpio = <&gpio1 23 GPIO_ACTIVE_HIGH>;	/* BDC Power - GPIO1_C7 */
+		startup-delay-us = <20000>;
+		enable-active-high;
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-min-microvolt = <12000000>;
+		regulator-max-microvolt = <12000000>;
+	};
+
+	vcc_bdc: vcc-bdc {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc_bdc";
+		gpio = <&gpio4 21 GPIO_ACTIVE_HIGH>;	/* BDC Power - GPIO4_C5 */
+		startup-delay-us = <20000>;
+		enable-active-high;
+		regulator-min-microvolt = <12000000>;
+		regulator-max-microvolt = <12000000>;
+		regulator-boot-on;
+		vin-supply = <&vcc12v0_ext>;
+	};
+
+	panel: panel {
+		status = "okay";
+		compatible = "simple-panel";
+		// compatible = "bc,wvga";
+		power-supply = <&vcc_bdc>;
+		prepare-delay-ms = <20>;
+		enable-delay-ms = <20>;
+		display-timings {
+			native-mode = <&timing0>;
+
+			timing0: timing0 {
+				clock-frequency = <29500000>;
+				hactive = <800>;
+				vactive = <480>;
+				hfront-porch = <91>;
+				hsync-len = <12>;
+				hback-porch = <90>;
+				vfront-porch = <9>;
+				vsync-len = <2>;
+				vback-porch = <8>;
+				hsync-active = <1>;
+				vsync-active = <1>;
+				de-active = <1>;
+				pixelclk-active = <1>;
+			};
+		};
+
+		ports {
+			panel_in: endpoint {
+				remote-endpoint = <&edp_out>;
+				// remote-endpoint = <&bridge_out>;
+			};
+		};
+	};
+};
+
+&pwm0 {
+	status = "disabled";
+};
+
+&i2c3 {
+	status = "okay";
+	i2c-scl-rising-time-ns = <160>;
+	i2c-scl-falling-time-ns = <30>;
+	clock-frequency = <400000>;
+	// bdc: bdc@1b {
+	// 	status = "okay";
+	// 	compatible = "duragon,bdc";
+	// 	// ports {
+	// 	// 	port@0 {
+	// 	// 		bridge_out: endpoint {
+	// 	// 			remote-endpoint = <&panel_in>;
+	// 	// 		};
+	// 	// 	};
+
+	// 	// 	port@1 {
+	// 	// 		bridge_in: endpoint {
+	// 	// 			remote-endpoint = <&edp_out>;
+	// 	// 		};
+	// 	// 	};
+	// 	// };
+	// };
+};
+
+&display_subsystem {
+	status = "okay";
+};
+&edp {
+	status = "okay";
+	force-hpd;
+	ports {
+		port@1 {
+			reg = <1>;
+
+			edp_out: endpoint {
+				remote-endpoint = <&panel_in>;
+				// remote-endpoint = <&bridge_in>;
+			};
+		};
+	};
+};
+&route_edp {
+	status = "okay";
+	connect = <&vopl_out_edp>;
+};
+&edp_in_vopl {
+	status = "okay";
+};
+&edp_in_vopb {
+	status = "disabled";
+};
+
+
+&i2c7 {
+	status = "okay";
+};
+&hdmi {
+	status = "okay";
+};
+&route_hdmi {
+	status = "okay";
+};
+&hdmi_in_vopl {
+	status = "disabled";
+};
+&hdmi_in_vopb {
+	status = "okay";
+};
+
+&vopl {
+	status = "okay";
+};
+&vopb {
+	status = "okay";
+};

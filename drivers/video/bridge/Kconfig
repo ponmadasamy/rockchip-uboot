@@ -33,3 +33,10 @@ config VIDEO_BRIDGE_ANALOGIX_ANX6345
 	help
 	 The Analogix ANX6345 is RGB-to-DP converter. It enables an eDP LCD
 	 panel to be connected to an parallel LCD interface.
+
+config FPDLINK_III_TI
+	bool "Support TI DS90ub927q-q1 <-> DS90ub928q-q1"
+	depends on VIDEO_BRIDGE
+	select DM_I2C
+	help
+	 This is something

@@ -1,0 +1,7 @@
+FRIENDLYELEC
+M:      Ponmadasamy Muthuraj <ponmadasamy@live.com>
+S:      Maintained
+F:      board/duragon/mpu-v2
+F:      include/configs/mpu-v2.h
+F:      configs/mpu-v2_defconfig
+W:	http://www.duragonsystems.com/index.php/en/solutions/railway-and-rolling-stock/mpu

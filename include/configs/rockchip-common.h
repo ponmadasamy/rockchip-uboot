@@ -84,7 +84,8 @@
 #ifdef CONFIG_ARM64
 #define ROOT_UUID "B921B045-1DF0-41C3-AF44-4C6F280D3FAE;\0"
 #else
-#define ROOT_UUID "69DAD710-2CE4-4E3C-B16C-21A1D49ABED3;\0"
+// #define ROOT_UUID "69DAD710-2CE4-4E3C-B16C-21A1D49ABED3;\0"
+#define ROOT_UUID "de07d137-4533-4673-ab0b-bb7d2ef4a2a6;\0"
 #endif
 #define PARTS_DEFAULT \
 	"uuid_disk=${uuid_gpt_disk};" \
@@ -93,6 +94,25 @@
 	"name=trust,size=4M,uuid=${uuid_gpt_atf};" \
 	"name=boot,size=112M,bootable,uuid=${uuid_gpt_boot};" \
 	"name=rootfs,size=-,uuid="ROOT_UUID
+
+#define PARTS_DURAGON \
+	"uuid_disk=${uuid_gpt_disk};" \
+	"name=spl,start=32K,size=4000K,uuid=${uuid_gpt_loader1};" \
+	"name=uboot,start=8MB,size=8MB,uuid=${uuid_gpt_loader2};" \
+	"name=boot,start=16MB,size=112MB,bootable,uuid=${uuid_gpt_boot};" \
+	"name=rootfs,start=128MB,size=-,uuid="ROOT_UUID
+
+#define PARTS_DURAGON_EXT \
+	"uuid_disk=${uuid_gpt_disk};" \
+	"name=loader1,start=32K,size=3552K,uuid=${uuid_gpt_loader1};" \
+	"name=vendor,start=3584K,size=256K,uuid=${uuid_gpt_vendor};" \
+	"name=unused,start=3840K,size=192K,uuid=${uuid_gpt_unused};" \
+	"name=reserved1,start=4034K,size=64K,uuid=${uuid_gpt_reserved1};" \
+	"name=env,start=4064K,size=32K,uuid=${uuid_gpt_env};" \
+	"name=reserved2,start=4096K,size=4MB,uuid=${uuid_gpt_reserved2};" \
+	"name=loader2,start=8MB,size=8MB,uuid=${uuid_gpt_loader2};" \
+	"name=boot,start=16MB,size=112MB,bootable,uuid=${uuid_gpt_boot};" \
+	"name=rootfs,start=128MB,size=-,uuid="ROOT_UUID
 
 #define PARTS_RKIMG \
 	"uuid_disk=${uuid_gpt_disk};" \

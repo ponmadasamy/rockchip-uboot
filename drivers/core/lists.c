@@ -6,7 +6,6 @@
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
-
 #include <common.h>
 #include <errno.h>
 #include <dm/device.h>
@@ -184,6 +183,7 @@ int lists_bind_fdt(struct udevice *parent, ofnode node, struct udevice **devp)
 				ret);
 			return ret;
 		} else {
+			pr_debug("Driver '%s' bound with device %s\n", entry->name, dev->name);
 			found = true;
 			if (devp)
 				*devp = dev;

@@ -171,7 +171,7 @@ void board_init_f(ulong dummy)
 	if (!gd->serial.using_pre_serial &&
 	    !(gd->flags & GD_FLG_DISABLE_CONSOLE))
 		debug_uart_init();
-	printascii("U-Boot SPL board init");
+	printascii("U-Boot SPL board init\n");
 #endif
 	gd->sys_start_tick = get_ticks();
 #ifdef CONFIG_SPL_FRAMEWORK

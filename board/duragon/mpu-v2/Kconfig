@@ -1,0 +1,15 @@
+if TARGET_MPU_V2
+
+config SYS_BOARD
+	default "mpu-v2"
+
+config SYS_VENDOR
+	default "duragon"
+
+config SYS_CONFIG_NAME
+	default "mpu-v2"
+
+config BOARD_SPECIFIC_OPTIONS # dummy
+	def_bool y
+
+endif
