@@ -8,7 +8,9 @@
 #include <dt-bindings/pwm/pwm.h>
 #include <dt-bindings/pinctrl/rockchip.h>
 #include "rk3399.dtsi"
-#include "rk3399-sdram-ddr3-1866.dtsi"
+// #include "rk3399-sdram-ddr3-1866.dtsi"
+// #include "rk3399-sdram-ddr3-4G-1600.dtsi"
+#include "rk3399-sdram-lpddr3-4GB-1600.dtsi"
 #include "rk3399-u-boot.dtsi"
 #include <linux/media-bus-format.h>
 #include <dt-bindings/input/input.h>

@@ -1,8 +1,6 @@
-/*
- * (C) Copyright 2016 Rockchip Electronics Co., Ltd
- *
- * SPDX-License-Identifier:     GPL-2.0+
- */
+#define DEBUG
+#undef CONFIG_LOGLEVEL
+#define CONFIG_LOGLEVEL 8
 
 #include <common.h>
 #include <dm.h>
@@ -17,6 +15,9 @@
 #include <usb.h>
 #include <dwc3-uboot.h>
 #include <spl.h>
+#include <asm/io.h>
+#include <asm/gpio.h>
+
 #include "../common/duragon.h"
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -24,12 +25,93 @@ DECLARE_GLOBAL_DATA_PTR;
 #define RK3399_CPUID_OFF  0x7
 #define RK3399_CPUID_LEN  0x10
 
+/*
+ * ID info:
+ *  ID : Volts : ADC value :   Bucket
+ *  ==   =====   =========   ===========
+ *   0 : 0.102V:        58 :    0 -   81
+ *   1 : 0.211V:       120 :   82 -  150
+ *   2 : 0.319V:       181 :  151 -  211	SOM-RK3399
+ *   3 : 0.427V:       242 :  212 -  274	SOM-RK3399v2
+ *   4 : 0.542V:       307 :  275 -  342
+ *   5 : 0.666V:       378 :  343 -  411
+ *   6 : 0.781V:       444 :  412 -  477
+ *   7 : 0.900V:       511 :  478 -  545
+ *   8 : 1.023V:       581 :  546 -  613
+ *   9 : 1.137V:       646 :  614 -  675
+ *  10 : 1.240V:       704 :  676 -  733
+ *  11 : 1.343V:       763 :  734 -  795
+ *  12 : 1.457V:       828 :  796 -  861
+ *  13 : 1.576V:       895 :  862 -  925
+ *  14 : 1.684V:       956 :  926 -  989
+ *  15 : 1.800V:      1023 :  990 - 1023
+ */
+static const int id_readings[] = {
+	 81, 150, 211, 274, 342, 411, 477, 545,
+	613, 675, 733, 795, 861, 925, 989, 1023
+};
+
+static int cached_board_id = -1;
+
+#define SARADC_BASE		0xFF100000
+#define SARADC_DATA		(SARADC_BASE + 0)
+#define SARADC_CTRL		(SARADC_BASE + 8)
+
+static u32 get_saradc_value(int chn)
+{
+	int timeout = 0;
+	u32 adc_value = 0;
+
+	writel(0, SARADC_CTRL);
+	udelay(2);
+
+	writel(0x28 | chn, SARADC_CTRL);
+	udelay(50);
+
+	timeout = 0;
+	do {
+		if (readl(SARADC_CTRL) & 0x40) {
+			adc_value = readl(SARADC_DATA) & 0x3FF;
+			goto stop_adc;
+		}
+
+		udelay(10);
+	} while (timeout++ < 100);
+
+stop_adc:
+	writel(0, SARADC_CTRL);
+
+	return adc_value;
+}
+
+static uint32_t get_board_id(void)
+{
+	int i;
+	int adc_reading;
+
+	if (cached_board_id != -1)
+		return cached_board_id;
+
+	adc_reading = get_saradc_value(4); /* ADC_IN4 */
+	for (i = 0; i < ARRAY_SIZE(id_readings); i++) {
+		if (adc_reading <= id_readings[i]) {
+			debug("ADC reading %d, ID %d\n", adc_reading, i);
+			cached_board_id = i;
+			return i;
+		}
+	}
+
+	/* should die for impossible value */
+	return 0;
+}
+
 int rk_board_init(void)
 {
 	struct udevice *pinctrl, *regulator;
 	int ret;
 
-	debug("%s: Initialization\n", __func__);
+	debug("%s\n", __func__);
+	debug("%s: SOM ID: %d\n", __func__, get_board_id());
 	/*
 	 * The PWM does not have decicated interrupt number in dts and can
 	 * not get periph_id by pinctrl framework, so let's init them here.
@@ -38,22 +120,22 @@ int rk_board_init(void)
 	ret = uclass_get_device(UCLASS_PINCTRL, 0, &pinctrl);
 	if (ret) {
 		debug("%s: Cannot find pinctrl device, %d\n", __func__, ret);
-		goto host;
+		// goto host;
 	}
 
 	ret = pinctrl_request_noflags(pinctrl, PERIPH_ID_PWM2);
 	if (ret) {
 		debug("%s PWM2 pinctrl init fail!, %d\n", __func__, ret);
-		goto host;
+		// goto host;
 	}
 
 	ret = pinctrl_request_noflags(pinctrl, PERIPH_ID_PWM3);
 	if (ret) {
 		debug("%s PWM3 pinctrl init fail!, %d\n", __func__, ret);
-		goto host;
+		// goto host;
 	}
 
-host:
+// host:
 	/* Type C USB host power control */
 	ret = regulator_get_by_platname("vcc5v0_host", &regulator);
 	if (ret) {
@@ -67,6 +149,7 @@ host:
 		goto ext;
 	}
 	debug("%s: USB Host Power Enabled\n", __func__);
+	
 ext:
 	/* External Power Control */
 	ret = regulator_get_by_platname("vcc12v0_ext", &regulator);
@@ -101,7 +184,7 @@ out:
 
 int rk_board_late_init(void)
 {
-	printf("rk_board_late_init\n");
+	debug("%s\n", __func__);
 	
 	setup_fpdlink_iii();
 	return 0;
@@ -250,4 +333,54 @@ int print_cpuinfo(void)
 	debug("CPU: RK3399\n");
 	return 0;
 }
-#endif
+#endif	/* #if defined(CONFIG_DISPLAY_CPUINFO) */
+
+
+/*
+ * Board revision list: <GPIO4_D1 | GPIO4_D0>
+ *  0b00 - NanoPC-T4
+ *  0b01 - NanoPi M4
+ *
+ * Extended by ADC_IN4
+ * Group A:
+ *  0x04 - NanoPi NEO4
+ *  0x06 - SOC-RK3399
+ *
+ * Group B:
+ *  0x21 - NanoPi M4 Ver2.0
+ */
+static int som_rev = -1;
+
+void bd_hwrev_init(void)
+{
+#define GPIO4_BASE	0xff790000
+	struct rockchip_gpio_regs *regs = (void *)GPIO4_BASE;
+
+	if (som_rev >= 0)
+		return;
+
+	/* D1, D0: input mode */
+	clrbits_le32(&regs->swport_ddr, (0x3 << 24));
+	som_rev = (readl(&regs->ext_port) >> 24) & 0x3;
+
+	if (som_rev == 0x3) {
+		/* Revision group A: 0x04 ~ 0x13 */
+		som_rev = 0x4 + get_board_id();
+
+	} else if (som_rev == 0x1) {
+		int idx = get_board_id();
+
+		/* Revision group B: 0x21 ~ 0x2f */
+		if (idx > 0) {
+			som_rev = 0x20 + idx;
+		}
+	}
+}
+
+#ifdef CONFIG_REVISION_TAG
+u32 get_board_rev(void)
+{
+	debug("%s\n", __func__);
+	return som_rev;
+}
+#endif /* #ifdef CONFIG_REVISION_TAG */

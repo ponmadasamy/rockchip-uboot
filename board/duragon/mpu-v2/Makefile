@@ -5,4 +5,4 @@
 #
 
 obj-y	+= ../common/duragon.o
-obj-y	+= mpu-v2.o
+obj-y	+= board.o

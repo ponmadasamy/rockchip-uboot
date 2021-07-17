@@ -28,7 +28,6 @@ static int fixed_regulator_ofdata_to_platdata(struct udevice *dev)
 	int flags = GPIOD_IS_OUT;
 	int ret;
 
-	printf("fixed_regulator_ofdata_to_platdata\n");
 	dev_pdata = dev_get_platdata(dev);
 	uc_pdata = dev_get_uclass_platdata(dev);
 	if (!uc_pdata)
